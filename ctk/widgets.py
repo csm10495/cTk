@@ -1,5 +1,5 @@
 from ctk import CtkFrame
-from imports import tk
+from imports import tk, ttk
 
 class AutoScrollbar(tk.Scrollbar):
     ''' a scrollbar that will disappear when not needed '''
@@ -27,10 +27,12 @@ class ScrollableText(CtkFrame):
     def clearText(self):
         ''' helper to clear the text '''
         self.text.delete(1.0, tk.END)
+        self.update_idletasks()
 
     def appendText(self, txt):
         ''' helper to append text '''
         self.text.insert(tk.END, txt)
+        self.update_idletasks()
 
     def getText(self):
         ''' helper to get the text '''
@@ -40,4 +42,4 @@ class ScrollableText(CtkFrame):
         ''' helper to set the text '''
         self.clearText()
         self.appendText(txt)
-
+        self.update_idletasks()

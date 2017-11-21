@@ -1,6 +1,6 @@
+import contextlib
 import os
 import sys
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 from imports import *
 
@@ -64,6 +64,18 @@ class AbstractCtkObject(object):
         '''
         self.columnconfigure(column, weight=weight)
 
+    @contextlib.contextmanager
+    def busyCursor(self):
+        '''
+        shows a busy cursor during the given context
+        '''
+        try:
+            self.config(cursor='watch')
+            self.update()
+            yield
+        finally:
+            self.config(cursor='')
+
 class CtkWindow(tk.Tk, AbstractCtkObject):
     '''
     a tk.Tk with all the features of the AbstractCtkObject
@@ -96,7 +108,10 @@ class _TestGui(CtkWindow):
 
         from widgets import ScrollableText
         self.addWidget(ScrollableText, name='scrollText', x=0, y=1, gridKwargs={"columnspan": 2, "sticky" : tk.NSEW})
-        self.addWidget(tk.Button, text="Show Used Cells", x=0, y=2, command=self.showUsedCells)
+
+        self.addWidget(CtkFrame, name='buttonFrame', x=0, y=2, gridKwargs={"columnspan": 2, "sticky" : tk.NSEW})
+        self.buttonFrame.addWidget(tk.Button, text="Show Used Cells", x=0, y=0, command=self.showUsedCells, gridKwargs={'padx' : 5})
+        self.buttonFrame.addWidget(tk.Button, text="Go Busy For A Bit", x=1, y=0, command=self.waitABit, gridKwargs={'padx' : 5})
 
         self.expandRow(1)
         self.expandColumn(1)
@@ -104,6 +119,14 @@ class _TestGui(CtkWindow):
 
     def showMessageBox(self):
         MessageBox.showinfo("Message", self.textMsgBox.get(1.0, tk.END))
+
+    def waitABit(self):
+        import random, time
+        n = random.randint(1, 3)
+        self.scrollText.appendText("Going busy for %d seconds!\n" % n)
+        with self.busyCursor():
+            time.sleep(n)
+        self.scrollText.appendText("Done!\n")
 
     def showUsedCells(self):
         coordStr = ""
