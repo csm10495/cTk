@@ -1,11 +1,31 @@
+'''
+Brief:
+    Ctk is an easy to use wrapper around Tk to make it a bit easier to make GUIs
+
+License:
+    MIT License
+
+Author(s);
+    Charles Machalow
+'''
 import contextlib
 import os
+import pdb
+import random
 import sys
+import threading
+import time
 
 from imports import *
 
 class AbstractCtkObject(object):
+    '''
+    All Ctk objects extend from this. Contains things common to all extended widgets
+    '''
     def __init__(self, *args, **kwargs):
+        '''
+        generic initializer, doesn't use any args at this point
+        '''
         self._usedCells = set()
 
     def getUsedCells(self):
@@ -69,12 +89,19 @@ class AbstractCtkObject(object):
         '''
         shows a busy cursor during the given context
         '''
+        cursor = self.cget('cursor')
         try:
             self.config(cursor='watch')
             self.update()
             yield
         finally:
-            self.config(cursor='')
+            self.config(cursor=cursor) # set back
+
+    def set_trace(self):
+        '''
+        drops us to a pdb session
+        '''
+        pdb.set_trace()
 
 class CtkWindow(tk.Tk, AbstractCtkObject):
     '''
@@ -113,22 +140,42 @@ class _TestGui(CtkWindow):
         self.buttonFrame.addWidget(tk.Button, text="Show Used Cells", x=0, y=0, command=self.showUsedCells, gridKwargs={'padx' : 5})
         self.buttonFrame.addWidget(tk.Button, text="Go Busy For A Bit", x=1, y=0, command=self.waitABit, gridKwargs={'padx' : 5})
 
+        self.buttonFrame.addWidget(tk.Button, name='buttonBp', text="Breakpoint", x=2, y=0, command=self.set_trace, gridKwargs={'padx' : 5})
+
         self.expandRow(1)
         self.expandColumn(1)
         self.mainloop()
 
     def showMessageBox(self):
+        '''
+        shows a useless message box
+        '''
         MessageBox.showinfo("Message", self.textMsgBox.get(1.0, tk.END))
 
     def waitABit(self):
-        import random, time
-        n = random.randint(1, 3)
-        self.scrollText.appendText("Going busy for %d seconds!\n" % n)
-        with self.busyCursor():
-            time.sleep(n)
-        self.scrollText.appendText("Done!\n")
+        '''
+        have our cursor go busy for a bit
+        '''
+        def _busyForABit(self):
+            '''
+            ran in a thread to have the busy cursor come up for a bit
+            '''
+            n = random.randint(1, 3)
+            self.scrollText.appendText("Going busy for %d seconds!\n" % n)
+
+            with self.busyCursor():
+                time.sleep(n)
+
+            self.scrollText.appendText("Done!\n")
+
+        t = threading.Thread(target=_busyForABit, args=(self,))
+        t.setDaemon(True)
+        t.start() # don't care when it ends
 
     def showUsedCells(self):
+        '''
+        prints all used cells to the console
+        '''
         coordStr = ""
         for x, y in self.getUsedCells():
             coordStr += "(%d, %d)\n" % (x, y)
