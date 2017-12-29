@@ -5,7 +5,7 @@ missingIdle = False
 if sys.version_info.major == 2:
     try:
         import Tkinter as tk
-        import Tkinter.ttk as ttk
+        import ttk
         import tkMessageBox as MessageBox
     except ImportError:
         missingTk = True
