@@ -33,6 +33,7 @@ class ScrollableText(CtkFrame):
         ''' helper to append text '''
         self.text.insert(tk.END, txt)
         self.update_idletasks()
+        self.text.see(tk.END)
 
     def getText(self):
         ''' helper to get the text '''
