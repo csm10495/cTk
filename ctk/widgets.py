@@ -19,10 +19,28 @@ class ScrollableText(CtkFrame):
         CtkFrame.__init__(self, *args, **kwargs)
 
         self.addWidget(AutoScrollbar, name="scrollY", x=1, y=0, gridKwargs={"sticky" : tk.NS})
-        self.addWidget(tk.Text, name="text", x=0, y=0, yscrollcommand=self.scrollY.set, gridKwargs={"sticky" : tk.NSEW})
+        self.addWidget(tk.Text, name="text", x=0, y=0, undo=True, yscrollcommand=self.scrollY.set, gridKwargs={"sticky" : tk.NSEW})
         self.scrollY.config(command=self.text.yview)
         self.expandColumn(0) # expand text
         self.expandRow(0) # expand text
+
+        # create a proxy for the underlying widget
+        self.text._orig = self.text._w + "_orig"
+        self.text.tk.call("rename", self.text._w, self.text._orig)
+        self.text.tk.createcommand(self.text._w, self._proxy)
+
+    def _proxy(self, command, *args):
+        ''' allows us to generate <<TextModified>> when the text changes '''
+        cmd = (self.text._orig, command) + args
+        try:
+            result = self.text.tk.call(cmd)
+        except:
+            return None
+
+        if command in ("insert", "delete", "replace"):
+            self.text.event_generate("<<TextModified>>")
+
+        return result
 
     def clearText(self):
         ''' helper to clear the text '''

@@ -7,6 +7,7 @@ if sys.version_info.major == 2:
         import Tkinter as tk
         import ttk
         import tkMessageBox as MessageBox
+        import tkFileDialog as filedialog
     except ImportError:
         missingTk = True
 
@@ -20,6 +21,7 @@ elif sys.version_info.major == 3:
         import tkinter as tk
         import tkinter.ttk as ttk
         from tkinter import messagebox as MessageBox
+        from tkinter import filedialog
     except ImportError:
         missingTk = True
 
