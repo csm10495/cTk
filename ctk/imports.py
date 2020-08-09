@@ -28,7 +28,10 @@ elif sys.version_info.major == 3:
     try:
         from idlelib.tooltip import ToolTip
     except ImportError:
-        missingIdle = True
+        try:
+            from idlelib.tooltip import Hovertip as ToolTip
+        except ImportError:
+            missingIdle = True
 else:
     raise EnvironmentError("You version of Python (%d) is not supported." % sys.version_info.major)
 
